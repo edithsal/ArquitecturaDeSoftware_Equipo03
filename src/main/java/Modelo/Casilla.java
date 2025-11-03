@@ -10,34 +10,32 @@ package Modelo;
  */
 
 public class Casilla {
+    
     private int id;
     private Ficha ocupadaPor;
 
     public Casilla(int id) {
         this.id = id;
-    }
-
-    public boolean estaOcupada() {
-        return ocupadaPor != null;
-    }
-    
-    public boolean esMeta() { 
-        return false; 
+        this.ocupadaPor = null;
     }
 
     public int getId() {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public boolean estaOcupada() {
+        return ocupadaPor != null;
     }
 
     public Ficha getOcupadaPor() {
         return ocupadaPor;
     }
 
-    public void setOcupadaPor(Ficha ocupadaPor) {
-        this.ocupadaPor = ocupadaPor;
+    public void setOcupadaPor(Ficha ficha) {
+        this.ocupadaPor = ficha;
+    }
+    
+    public boolean esMeta() {
+        return id >= 50;
     }
 }

@@ -16,19 +16,12 @@ public class Jugador {
     private String nombre;
     private String colorFicha;
     private List<Ficha> fichas;
+    private Dado dado = new Dado(); 
 
     public Jugador(String nombre, String colorFicha, List<Ficha> fichas) {
         this.nombre = nombre;
         this.colorFicha = colorFicha;
         this.fichas = fichas;
-    }
-
-    public int tirarDado() {
-        return (int)(Math.random() * 6) + 1;
-    }
-
-    public void moverFicha(Ficha ficha, Casilla casilla) {
-        ficha.avanzar(casilla);
     }
 
     public String getNombre() {
@@ -53,5 +46,14 @@ public class Jugador {
 
     public void setFichas(List<Ficha> fichas) {
         this.fichas = fichas;
+    }
+    
+    public int tirarDado() {
+        return dado.lanzar();
+    }
+
+    public void moverFicha(Ficha ficha, Casilla destino) {
+        ficha.moverA(destino);
+        ficha.setEnBase(false);
     }
 }

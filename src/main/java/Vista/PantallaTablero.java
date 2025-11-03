@@ -29,50 +29,76 @@ public class PantallaTablero extends javax.swing.JFrame {
     };
     public PantallaTablero() {
         initComponents();
-         inicializarJuego();
+        inicializarJuego();
           
     }
- public JButton getBtnTirarDado() {
-    return btnTirarDado1;  
-}
- private void inicializarJuego() {
-        fichaJugador1 = new Ficha("Rojo");
-        fichaJugador2 = new Ficha("Azul");
-
-        Jugador jugador1 = new Jugador("Jugador 1", "Rojo", Arrays.asList(fichaJugador1));
-        Jugador jugador2 = new Jugador("Jugador 2", "Azul", Arrays.asList(fichaJugador2));
-
-        juego = new Juego();
-        juego.agregarJugador(jugador1);
-        juego.agregarJugador(jugador2);
-        juego.iniciarJuego();
-
-        lblTurno.setText("Turno: " + juego.getJugadorActual().getNombre());
-        btnTirarDado1.setEnabled(true);
-        btnTirarDado2.setEnabled(false);
+    
+    public JButton getBtnTirarDado() {
+        return btnTirarDado;  
     }
 
-    public void moverFicha(Ficha ficha, int pasos) {
-        int nuevaPos = pasos;
-        if (nuevaPos >= posicionesCasillas.length)
+    private void inicializarJuego() {
+       fichaJugador1 = new Ficha("Rojo");
+       fichaJugador2 = new Ficha("Azul");
+
+       Jugador jugador1 = new Jugador("Jugador 1", "Rojo", Arrays.asList(fichaJugador1));
+       Jugador jugador2 = new Jugador("Jugador 2", "Azul", Arrays.asList(fichaJugador2));
+
+       juego = new Juego();
+       juego.agregarJugador(jugador1);
+       juego.agregarJugador(jugador2);
+       juego.iniciarJuego();
+
+       lblTurno.setText("Turno: " + juego.getJugadorActual().getNombre());
+    }
+
+    public void moverFicha(Ficha ficha, int nuevaPos) {
+        if (nuevaPos < 0) {
+            nuevaPos = 0;
+        }
+
+        if (nuevaPos >= posicionesCasillas.length) {
             nuevaPos = posicionesCasillas.length - 1;
+        }
 
-        lblFicha.setBounds(posicionesCasillas[nuevaPos][0], posicionesCasillas[nuevaPos][1], 20, 25);
+        lblFicha.setBounds(
+            posicionesCasillas[nuevaPos][0],
+            posicionesCasillas[nuevaPos][1],
+            20, 25
+        );
     }
 
-public void actualizarDado(int valor) {
-    lblResultado1.setText("Resultado: " + valor); 
-}
-public void actualizarTurnoYResultado(String nombreJugador, int resultado) {
-    lblTurno.setText("Turno: " + nombreJugador);
-    lblResultado1.setText("Resultado: " + resultado);
-}
+    public void actualizarDado(int valor) {
+        lblResultado1.setText("Resultado: " + valor); 
+    }
+
+    public void setTurnoJugador(String nombreJugador) {
+        if (nombreJugador.equals("Jugador 1")) {
+            lblTurno.setText("Turno: Jugador 1");
+            lblTurno2.setText("");
+        } else {
+            lblTurno2.setText("Turno: Jugador 2");
+            lblTurno.setText("");
+        }
+    }
+
+    public void actualizarTurnoYResultado(String nombreJugador, int resultado) {
+        if (nombreJugador.equals("Jugador 1")) {
+            lblTurno.setText("Turno: Jugador 1");
+            lblResultado1.setText("Resultado: " + resultado);
+            lblTurno2.setText(""); // limpia el otro
+        } else {
+            lblTurno2.setText("Turno: Jugador 2");
+            lblResultado2.setText("Resultado: " + resultado);
+            lblTurno.setText("");
+        }
+    }
 
 
 
-public void mostrarMensaje(String msg) {
-    javax.swing.JOptionPane.showMessageDialog(this, msg);
-}
+    public void mostrarMensaje(String msg) {
+        javax.swing.JOptionPane.showMessageDialog(this, msg);
+    }
 
 
   
@@ -93,11 +119,10 @@ public void mostrarMensaje(String msg) {
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
-        btnTirarDado1 = new javax.swing.JButton();
+        btnTirarDado = new javax.swing.JButton();
         lblTurno = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         lblResultado1 = new javax.swing.JLabel();
-        btnTirarDado2 = new javax.swing.JButton();
         lblResultado2 = new javax.swing.JLabel();
         lblTurno2 = new javax.swing.JLabel();
 
@@ -129,18 +154,18 @@ public void mostrarMensaje(String msg) {
         jLabel5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Iconos/Avatarr.png"))); // NOI18N
         jPanel1.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 610, 55, 60));
 
-        btnTirarDado1.setBackground(new java.awt.Color(102, 0, 102));
-        btnTirarDado1.setFont(new java.awt.Font("Kristen ITC", 1, 14)); // NOI18N
-        btnTirarDado1.setForeground(new java.awt.Color(204, 204, 255));
-        btnTirarDado1.setText("Tirar Dado");
-        btnTirarDado1.setBorder(null);
-        btnTirarDado1.setBorderPainted(false);
-        btnTirarDado1.addActionListener(new java.awt.event.ActionListener() {
+        btnTirarDado.setBackground(new java.awt.Color(102, 0, 102));
+        btnTirarDado.setFont(new java.awt.Font("Kristen ITC", 1, 14)); // NOI18N
+        btnTirarDado.setForeground(new java.awt.Color(204, 204, 255));
+        btnTirarDado.setText("Tirar Dado");
+        btnTirarDado.setBorder(null);
+        btnTirarDado.setBorderPainted(false);
+        btnTirarDado.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnTirarDado1ActionPerformed(evt);
+                btnTirarDadoActionPerformed(evt);
             }
         });
-        jPanel1.add(btnTirarDado1, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 620, 95, 33));
+        jPanel1.add(btnTirarDado, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 620, 95, 33));
 
         lblTurno.setFont(new java.awt.Font("SansSerif", 1, 14)); // NOI18N
         lblTurno.setForeground(new java.awt.Color(255, 255, 255));
@@ -155,19 +180,6 @@ public void mostrarMensaje(String msg) {
         lblResultado1.setText("Resultado:");
         jPanel1.add(lblResultado1, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 660, 100, 30));
 
-        btnTirarDado2.setBackground(new java.awt.Color(102, 0, 102));
-        btnTirarDado2.setFont(new java.awt.Font("Kristen ITC", 1, 14)); // NOI18N
-        btnTirarDado2.setForeground(new java.awt.Color(204, 204, 255));
-        btnTirarDado2.setText("Tirar Dado");
-        btnTirarDado2.setBorder(null);
-        btnTirarDado2.setBorderPainted(false);
-        btnTirarDado2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnTirarDado2ActionPerformed(evt);
-            }
-        });
-        jPanel1.add(btnTirarDado2, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 620, 95, 33));
-
         lblResultado2.setFont(new java.awt.Font("SansSerif", 1, 14)); // NOI18N
         lblResultado2.setForeground(new java.awt.Color(255, 255, 255));
         lblResultado2.setText("Resultado:");
@@ -176,86 +188,35 @@ public void mostrarMensaje(String msg) {
         lblTurno2.setFont(new java.awt.Font("SansSerif", 1, 14)); // NOI18N
         lblTurno2.setForeground(new java.awt.Color(255, 255, 255));
         lblTurno2.setText("Turno:");
-        jPanel1.add(lblTurno2, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 690, 110, 30));
+        jPanel1.add(lblTurno2, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 690, 180, 30));
 
         getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(1, 0, 430, 730));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btnTirarDado1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTirarDado1ActionPerformed
-                                            
-                                                 
-    Jugador jugador = juego.getJugadorActual();
+    private void btnTirarDadoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTirarDadoActionPerformed
+        Jugador jugador = juego.getJugadorActual();
 
-    if (!jugador.getNombre().equals("Jugador 1")) {
-        JOptionPane.showMessageDialog(this, "No es tu turno, espera al otro jugador.");
-        return;
-    }
+        int resultado = juego.lanzarDado();
+        actualizarDado(resultado);
 
-    int resultado = juego.lanzarDado();
-    lblResultado1.setText("Resultado: " + resultado);
+        Ficha ficha = jugador.getFichas().get(0); 
+        moverFicha(ficha, resultado - 1);
 
-    moverFicha(fichaJugador1, resultado - 1);
-
-    if (resultado == 6) {
-        JOptionPane.showMessageDialog(this, "¡Jugador 1 sacó un 6! Juega de nuevo.");
-    } else {
-        juego.siguienteTurno();
-
-        
-        String nombre = juego.getJugadorActual().getNombre();
-        if (nombre.equals("Jugador 1")) {
-            lblTurno.setText("Turno: 1");
-            lblTurno2.setText("Turno:");
-        } else if (nombre.equals("Jugador 2")) {
-            lblTurno2.setText("Turno: 2");
-            lblTurno.setText("Turno:");
+        if (ficha.isEnMeta()) {
+            mostrarMensaje(" " + jugador.getNombre() + " ha llegado a la meta!");
+            btnTirarDado.setEnabled(false);
+            return;
         }
 
-        btnTirarDado1.setEnabled(false);
-        btnTirarDado2.setEnabled(true);
-    }
-                                          
-
-    }//GEN-LAST:event_btnTirarDado1ActionPerformed
-
-    private void btnTirarDado2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTirarDado2ActionPerformed
-                                        
-    Jugador jugador = juego.getJugadorActual();
-
-    if (!jugador.getNombre().equals("Jugador 2")) {
-        JOptionPane.showMessageDialog(this, "No es tu turno, espera al otro jugador.");
-        return;
-    }
-
-    int resultado = juego.lanzarDado();
-    lblResultado2.setText("Resultado: " + resultado);
-
-    moverFicha(fichaJugador2, resultado - 1);
-
-    if (resultado == 6) {
-        JOptionPane.showMessageDialog(this, "¡Jugador 2 sacó un 6! Juega de nuevo.");
-    } else {
-        juego.siguienteTurno();
-
-       
-        String nombre = juego.getJugadorActual().getNombre();
-        if (nombre.equals("Jugador 1")) {
-            lblTurno.setText("Turno: 1");
-            lblTurno2.setText("Turno:");
-        } else if (nombre.equals("Jugador 2")) {
-            lblTurno2.setText("Turno: 2");
-            lblTurno.setText("Turno:");
+        if (resultado != 6) {
+            juego.siguienteTurno();
         }
 
-       
-        btnTirarDado1.setEnabled(true);
-        btnTirarDado2.setEnabled(false);
-    }
-
-
-    }//GEN-LAST:event_btnTirarDado2ActionPerformed
+        String siguiente = juego.getJugadorActual().getNombre();
+        setTurnoJugador(siguiente);
+    }//GEN-LAST:event_btnTirarDadoActionPerformed
 
     /**
      * @param args the command line arguments
@@ -293,8 +254,7 @@ public void mostrarMensaje(String msg) {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnTirarDado1;
-    private javax.swing.JButton btnTirarDado2;
+    private javax.swing.JButton btnTirarDado;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;

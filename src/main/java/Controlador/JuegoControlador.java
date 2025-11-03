@@ -1,10 +1,5 @@
-
 package Controlador;
 
-/**
- *
- * @author LENOVO
- */
 import Modelo.Ficha;
 import Modelo.Juego;
 import Modelo.Jugador;
@@ -13,22 +8,34 @@ import Socket.Cliente;
 import Socket.MensajeJuego;
 import Socket.Servidor;
 import Vista.PantallaTablero;
+import Blackboard.Blackboard;
+import Blackboard.FrmBlackboard;
+import ProtocoloDispatch.BlackboardListener;
+
+import javax.swing.SwingUtilities;
+
 /**
- *
- * @author valen
+ * Controlador principal del juego.
+ * implementa BlackboardListener para reaccionar a los mensajes del Blackboard.
+ * 
+ * @author Emma
  */
-public class JuegoControlador {
+public class JuegoControlador implements BlackboardListener {
+
     private Juego juego;
     private PantallaTablero vista;
     private ReglasJuego reglas;
     private Servidor servidor;
     private Cliente cliente;
-    private boolean soyServidor;
+    private boolean soyServidor = false;
+    private String miNombre;
+
 
     public JuegoControlador(Juego juego, PantallaTablero vista, ReglasJuego reglas) {
         this.juego = juego;
         this.vista = vista;
         this.reglas = reglas;
+        inicializarBlackboard();
         inicializarEventos();
     }
 
@@ -38,6 +45,8 @@ public class JuegoControlador {
         this.reglas = reglas;
         this.servidor = servidor;
         this.soyServidor = true;
+        this.miNombre = "Jugador 1"; 
+        inicializarBlackboard();
         inicializarEventos();
         escucharMensajes();
     }
@@ -48,76 +57,139 @@ public class JuegoControlador {
         this.reglas = reglas;
         this.cliente = cliente;
         this.soyServidor = false;
+        this.miNombre = "Jugador 2"; 
+        inicializarBlackboard();
         inicializarEventos();
         escucharMensajes();
     }
 
-    private void inicializarEventos() {
-        vista.getBtnTirarDado().addActionListener(e -> lanzarDado());
+    private void inicializarBlackboard() {
+        FrmBlackboard frm = new FrmBlackboard();
+        frm.setVisible(true);
+
+        Blackboard bb = Blackboard.getInstancia();
+        bb.setVista(frm);
+        bb.agregarListener(this); 
+
+        bb.publicar("Pizarra lista. Esperando movimientos...");
     }
+
+    private void inicializarEventos() {
+    vista.getBtnTirarDado().addActionListener(e -> {
+        if (miNombre.equals(juego.getJugadorActual().getNombre())) {
+            lanzarDado();
+            vista.getBtnTirarDado().setEnabled(false);
+        }
+    });
+}
+
+
 
     private void lanzarDado() {
     int resultado = juego.lanzarDado();
     Jugador jugadorActual = juego.getJugadorActual();
 
-    if (jugadorActual.getFichas() == null || jugadorActual.getFichas().isEmpty()) {
-        vista.mostrarMensaje("⚠️ El jugador " + jugadorActual.getNombre() + " no tiene fichas asignadas.");
-        System.out.println("Error: jugador sin fichas -> " + jugadorActual.getNombre());
-        return;
-    }
-
     Ficha fichaAMover = jugadorActual.getFichas().get(0);
-
     int idCasillaActual = fichaAMover.getPosicion() == null ? -1 : fichaAMover.getPosicion().getId();
-    int idCasillaNueva = idCasillaActual + resultado;
-
-    if (idCasillaNueva >= juego.getTablero().getCasillas().size()) {
-        idCasillaNueva = juego.getTablero().getCasillas().size() - 1;
-    }
+    int idCasillaNueva = Math.min(idCasillaActual + resultado, juego.getTablero().getCasillas().size() - 1);
 
     fichaAMover.avanzar(juego.getTablero().obtenerCasilla(idCasillaNueva));
     vista.moverFicha(fichaAMover, idCasillaNueva);
-
     vista.actualizarTurnoYResultado(jugadorActual.getNombre(), resultado);
+
+    Blackboard.getInstancia().publicar(
+        jugadorActual.getNombre() + " saco " + resultado + " y movio ficha a casilla " + idCasillaNueva
+    );
 
     MensajeJuego mensaje = new MensajeJuego();
     mensaje.setTipo("DADO");
     mensaje.setJugador(jugadorActual.getNombre());
     mensaje.setValorDado(resultado);
+    mensaje.setIdCasilla(idCasillaNueva);
 
-    try {
-        if (soyServidor) servidor.enviar(mensaje);
-        else cliente.enviar(mensaje);
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
+    if (soyServidor) servidor.enviar(mensaje);
+    else cliente.enviar(mensaje);
 
+    String siguienteTurno;
     if (resultado != 6) {
-        juego.siguienteTurno();
+        int idxActual = juego.getJugadores().indexOf(jugadorActual);
+        int idxSiguiente = (idxActual + 1) % juego.getJugadores().size();
+        siguienteTurno = juego.getJugadores().get(idxSiguiente).getNombre();
+        juego.setJugadorActual(juego.getJugadores().get(idxSiguiente));
     } else {
-        vista.mostrarMensaje("¡Sacaste un 6! Otro turno");
+        siguienteTurno = jugadorActual.getNombre();
     }
+
+    MensajeJuego mensajeTurno = new MensajeJuego();
+    mensajeTurno.setTipo("TURNO");
+    mensajeTurno.setJugador(siguienteTurno);
+
+    if (soyServidor) servidor.enviar(mensajeTurno);
+    else cliente.enviar(mensajeTurno);
 }
 
 
+   
+
     private void escucharMensajes() {
-        if (soyServidor) {
-            servidor.escucharMensajes(mensaje -> actualizarDesdeMensaje(mensaje));
-        } else {
-            cliente.escucharMensajes(mensaje -> actualizarDesdeMensaje(mensaje));
-        }
+        if (soyServidor) servidor.escucharMensajes(this::actualizarDesdeMensaje);
+        else cliente.escucharMensajes(this::actualizarDesdeMensaje);
     }
 
     private void actualizarDesdeMensaje(MensajeJuego mensaje) {
-        javax.swing.SwingUtilities.invokeLater(() -> {
-            vista.actualizarTurnoYResultado(mensaje.getJugador(), mensaje.getValorDado());
-            juego.siguienteTurno();
-        });
+    SwingUtilities.invokeLater(() -> {
+        switch (mensaje.getTipo()) {
+            case "DADO":
+                vista.actualizarTurnoYResultado(mensaje.getJugador(), mensaje.getValorDado());
+                Blackboard.getInstancia().publicar(
+                    "Recibido: " + mensaje.getJugador() + " tiro " + mensaje.getValorDado()
+                );
+                break;
+
+            case "TURNO":
+
+                juego.setJugadorActual(
+                    juego.getJugadores().stream()
+                        .filter(j -> j.getNombre().equals(mensaje.getJugador()))
+                        .findFirst()
+                        .orElse(juego.getJugadorActual())
+                );
+
+                vista.setTurnoJugador(mensaje.getJugador());
+                String msgTurno = "Turno de: " + mensaje.getJugador();
+                vista.mostrarMensaje(msgTurno);
+                Blackboard.getInstancia().publicar(msgTurno);
+
+
+                boolean esMiTurno = miNombre != null 
+                    && mensaje.getJugador().trim().equalsIgnoreCase(miNombre.trim());
+                vista.getBtnTirarDado().setEnabled(esMiTurno);
+                break;
+        }
+    });
+}
+
+
+
+    @Override
+    public void onMensajePublicado(String mensaje) {
+       
+        if (mensaje.contains("gano")) {
+            vista.mostrarMensaje("¡Se detecto un ganador!");
+        }
+
+        System.out.println("[JuegoControlador escucha Blackboard] " + mensaje);
     }
+
 
     public void iniciarJuego() {
         vista.mostrarMensaje("El juego ha comenzado.");
         vista.actualizarTurnoYResultado(juego.getJugadorActual().getNombre(), 0);
+
+   
+        boolean esMiTurnoInicial = miNombre != null && miNombre.equals(juego.getJugadorActual().getNombre());
+        vista.getBtnTirarDado().setEnabled(esMiTurnoInicial);
+
+        Blackboard.getInstancia().publicar("El juego ha comenzado. Turno de " + juego.getJugadorActual().getNombre());
     }
 }
-

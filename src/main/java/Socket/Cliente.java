@@ -9,6 +9,7 @@ package Socket;
  * @author LENOVO
  */
 
+import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -35,27 +36,33 @@ public class Cliente {
         }
     }
 
-    public void enviar(Object obj) {
-        try {
-            salida.writeObject(obj);
-            salida.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+   public void enviar(MensajeJuego mensaje) {
+    try {
+        Gson gson = new Gson();
+        String json = gson.toJson(mensaje);
+        salida.writeObject(json); 
+        salida.flush();
+        System.out.println("[JSON ENVIADO] " + json);
+    } catch (IOException e) {
+        e.printStackTrace();
     }
+}
 
-    public void escucharMensajes(java.util.function.Consumer<MensajeJuego> callback) {
-        new Thread(() -> {
-            try {
-                while (true) {
-                    MensajeJuego mensaje = (MensajeJuego) entrada.readObject();
-                    callback.accept(mensaje);
-                }
-            } catch (Exception e) {
-                System.out.println("Conexión cerrada o error: " + e.getMessage());
+public void escucharMensajes(java.util.function.Consumer<MensajeJuego> callback) {
+    new Thread(() -> {
+        try {
+            Gson gson = new Gson();
+            while (true) {
+                String json = (String) entrada.readObject();
+                MensajeJuego mensaje = gson.fromJson(json, MensajeJuego.class);
+                callback.accept(mensaje);
+                System.out.println("[JSON RECIBIDO] " + json);
             }
-        }).start();
-    }
+        } catch (Exception e) {
+            System.out.println("Conexion cerrada o error: " + e.getMessage());
+        }
+    }).start();
+}
 
     public void cerrar() {
         try {

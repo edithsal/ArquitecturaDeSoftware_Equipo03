@@ -4,6 +4,8 @@
  */
 package Modelo;
 
+import java.util.Random;
+
 /**
  *
  * @author LENOVO
@@ -12,10 +14,10 @@ package Modelo;
 
 public class Dado {
     private int valor;
+    private final Random random = new Random();
 
     public int lanzar() {
-        valor = (int)(Math.random() * 6) + 1;
-        return valor;
+        return random.nextInt(6) + 1;
     }
 
     public int getValor() {
