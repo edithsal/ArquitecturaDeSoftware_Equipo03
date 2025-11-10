@@ -84,5 +84,3 @@ Diagrama de casos de uso
 Diagrama de secuencia del caso “Ejercer Turno”
 
 Diagrama de actividades
-
-Hola soy Juan
